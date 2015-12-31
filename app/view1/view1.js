@@ -14,14 +14,14 @@ angular.module('myApp.view1', ['ngRoute'])
         const cellWidth  = 50;
         const cellHeight = 50;
         const sightRange = 8 ;
-        const mapWidth   = sightRange * 2 + 1;
-        const mapHeight  = sightRange * 2 + 1;
+        const mapWidth   = sightRange * 2 + 1;  // So that the player sees sightRange amount of block in front
+        const mapHeight  = sightRange * 2 + 1;  // of her and behind
         const svgWidth   = mapWidth  * cellWidth ;
         const svgHeight  = mapHeight * cellHeight;
 
-        let scene = [] ;   // empty map. Will contain whole scene map
+        let scene = [] ;     // empty map. Will contain whole scene map
         let pov = [10,10];   // p.o.v - Point of view. cartesian coordinates pointing to the player perspective
-
+        $scope.selected = undefined;  // Holds user's selected tile.
 
         $scope.slice = function(_scene, _pov, _range) {
             // Slice takes a subset of an array. Returned array will contain all coordinates between
@@ -44,6 +44,13 @@ angular.module('myApp.view1', ['ngRoute'])
             return mapSlice;
         };
 
+        let selection = function() {
+            let _id = d3.select(this).attr('id');
+            if ($scope.selected != undefined) d3.select('#'+$scope.selected).attr('fill','red');
+            $scope.selected = _id;
+            d3.select(this).attr('fill','blue');
+        };
+
         $scope.draw = function() {
             let cellData = $scope.slice(scene, pov, sightRange) ;
             cellData = $scope.flatten(cellData);
@@ -60,7 +67,10 @@ angular.module('myApp.view1', ['ngRoute'])
                 .attr('y',  function(d) { return d.viewY * cellHeight})
                 .attr('width' , cellWidth)
                 .attr('height', cellHeight)
-                .attr('fill','red');
+                .attr('fill','red')
+                .attr('id',function(d) { return d.id } )
+                .on('click',selection);
+            if ($scope.selected != undefined) d3.select('#'+$scope.selected).attr('fill','blue');
            /* svg.append('text')
                 .attr('x',20)
                 .attr('y',20)
@@ -96,11 +106,11 @@ angular.module('myApp.view1', ['ngRoute'])
 
         $scope.handleKeyboard = function(keyEvent) {
             console.log(keyEvent.which);
-            if (keyEvent.which === 119) {         // W
+            if (keyEvent.which === 115) {         // W
                 movePov(0, 1);
-            } else if (keyEvent.which === 115) {  // down
+            } else if (keyEvent.which === 119) {  // down
                 movePov(0, -1);
-            } else if (keyEvent.which === 97) {  // left
+            } else if (keyEvent.which === 97) {   // left
                 movePov(-1, 0);
             } else if (keyEvent.which === 100) {  // right
                 movePov(1, 0);
@@ -108,11 +118,11 @@ angular.module('myApp.view1', ['ngRoute'])
         };
 
         let mockScene = function() {
-            for (let i = 0; i <= 256; i++) {
+            for (let i = 0; i < 256; i++) {
                 let row = [];
-                for (let j = 0; j <=256; j++) {
+                for (let j = 0; j <256; j++) {
                     let cell = {};
-                    if ((j % 2) == 0) cell = {'text':'whatevah'};
+                    if (Math.random() > 0.65) cell = {'text':'whatevah', 'id':Math.random().toString(36).substring(7)};
                     row.push(cell);
                 }
                 scene.push(row);
