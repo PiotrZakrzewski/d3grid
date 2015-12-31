@@ -21,7 +21,10 @@ angular.module('myApp.view1', ['ngRoute'])
 
         let scene = [] ;     // empty map. Will contain whole scene map
         let pov = [10,10];   // p.o.v - Point of view. cartesian coordinates pointing to the player perspective
-        $scope.selected = undefined;  // Holds user's selected tile.
+        let selected = undefined;  // Holds user's selected tile.
+        let info = {} ;
+
+        $scope.info = {'text':''}; // text to be displayed on selection
 
         $scope.slice = function(_scene, _pov, _range) {
             // Slice takes a subset of an array. Returned array will contain all coordinates between
@@ -45,10 +48,14 @@ angular.module('myApp.view1', ['ngRoute'])
         };
 
         let selection = function() {
-            let _id = d3.select(this).attr('id');
-            if ($scope.selected != undefined) d3.select('#'+$scope.selected).attr('fill','red');
-            $scope.selected = _id;
-            d3.select(this).attr('fill','blue');
+            let that = this;
+            $scope.$apply( function() {
+                let _id = d3.select(that).attr('id');
+                if (selected != undefined) d3.select('#'+selected).attr('fill','red');
+                selected = _id;
+                d3.select(that).attr('fill','blue');
+                $scope.info.text = info[_id] ;
+            }) ;
         };
 
         $scope.draw = function() {
@@ -70,7 +77,7 @@ angular.module('myApp.view1', ['ngRoute'])
                 .attr('fill','red')
                 .attr('id',function(d) { return d.id } )
                 .on('click',selection);
-            if ($scope.selected != undefined) d3.select('#'+$scope.selected).attr('fill','blue');
+            if (selected != undefined) d3.select('#'+selected).attr('fill','blue');
            /* svg.append('text')
                 .attr('x',20)
                 .attr('y',20)
@@ -88,13 +95,13 @@ angular.module('myApp.view1', ['ngRoute'])
                     else {
                         cell.viewX = viewX;
                         cell.viewY = viewY;
-                        flatJson.push(cell)
+                        flatJson.push(cell);
+                        info[cell.id] = cell.text;
                     }
                     viewX++;
                 }
                 viewY++;
             }
-            console.log(flatJson);
             return flatJson;
         };
 
@@ -105,7 +112,6 @@ angular.module('myApp.view1', ['ngRoute'])
         };
 
         $scope.handleKeyboard = function(keyEvent) {
-            console.log(keyEvent.which);
             if (keyEvent.which === 115) {         // W
                 movePov(0, 1);
             } else if (keyEvent.which === 119) {  // down
@@ -122,7 +128,8 @@ angular.module('myApp.view1', ['ngRoute'])
                 let row = [];
                 for (let j = 0; j <256; j++) {
                     let cell = {};
-                    if (Math.random() > 0.65) cell = {'text':'whatevah', 'id':Math.random().toString(36).substring(7)};
+                    let _id ='tile_'+Math.random().toString(36).substring(7);
+                    if (Math.random() > 0.65) cell = {'text':_id, 'id':_id};
                     row.push(cell);
                 }
                 scene.push(row);
