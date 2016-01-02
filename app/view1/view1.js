@@ -72,7 +72,7 @@ angular.module('myApp.view1', ['ngRoute'])
             let diffX = selectedPos[1] - pov[1];
             let diffY = selectedPos[0] - pov[0];
             movePov(diffX, diffY);
-        }
+        };
 
         $scope.draw = function() {
             let cellData = $scope.slice(scene, pov, sightRange) ;
