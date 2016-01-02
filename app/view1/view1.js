@@ -11,9 +11,9 @@ angular.module('myApp.view1', ['ngRoute'])
 
 .controller('View1Ctrl', ['$scope', function($scope) {
 
-        const cellWidth  = 50;
-        const cellHeight = 50;
-        const sightRange = 8 ;
+        const cellWidth  = 20;
+        const cellHeight = 20;
+        const sightRange = 16 ;
         const mapWidth   = sightRange * 2 + 1;  // So that the player sees sightRange amount of block in front
         const mapHeight  = sightRange * 2 + 1;  // of her and behind
         const svgWidth   = mapWidth  * cellWidth ;
@@ -31,14 +31,16 @@ angular.module('myApp.view1', ['ngRoute'])
             // Slice takes a subset of an array. Returned array will contain all coordinates between
             // [x_pov - _range][y_pov - _range] and [x_pov + _range][y_pov + _range] where x_pov and y_pov are
             // cartesian coordinates of center of vision, taken from _pov argument.
-            let x_pov = _pov[0];
-            let y_pov = _pov[1];
+            let x_pov = _pov[1];  // Y is always first, as scene is an array of rows
+            let y_pov = _pov[0];
             let lowerSliceX = x_pov - _range;
             let upperSliceX = x_pov + _range;
             let lowerSliceY = y_pov - _range;
             let upperSliceY = y_pov + _range;
             if (lowerSliceX < 0) lowerSliceX = 0;
             if (lowerSliceY < 0) lowerSliceY = 0;
+            if (upperSliceX <= scene[0].length) upperSliceX = scene[0].length -1;
+            if (upperSliceY <= scene[0].length) upperSliceY = scene.length -1;
             let mapSliceY = _scene.slice(lowerSliceY, upperSliceY + 1);
             let mapSlice  = [];
             for (let row of mapSliceY) {
@@ -48,7 +50,7 @@ angular.module('myApp.view1', ['ngRoute'])
             return mapSlice;
         };
 
-        let selection = function() {
+        var selection = function() {
             let that = this;
             $scope.$apply( function() {
                 let _id = d3.select(that).attr('id');
@@ -62,7 +64,15 @@ angular.module('myApp.view1', ['ngRoute'])
                     $scope.info.text = 'Nothing selected' ;
                 }
             }) ;
+            if (selected != undefined) center(selected);
         };
+
+        var center = function(_id) {
+            let selectedPos = positions[_id];
+            let diffX = selectedPos[1] - pov[1];
+            let diffY = selectedPos[0] - pov[0];
+            movePov(diffX, diffY);
+        }
 
         $scope.draw = function() {
             let cellData = $scope.slice(scene, pov, sightRange) ;
@@ -112,18 +122,23 @@ angular.module('myApp.view1', ['ngRoute'])
         };
 
         var movePov = function(diffX, diffY) {
-            pov[0] += diffX;
-            pov[1] += diffY;
+            pov[1] += diffX;
+            pov[0] += diffY;
             $scope.draw()  ;
         };
 
         var moveToken = function(tokenId, diffX, diffY ) {
             let currentPos  = positions[tokenId];  // positions is y, x organized
             let destination = [currentPos[0] + diffY, currentPos[1] + diffX]; // so dst will also be y,x
+            if (destination[0] < 0 ||
+                destination[0] >= scene.length ||
+                destination[1] < 0 ||
+                destination[1] >= scene[0].length ) {
+                alert('Destination [y,x]: '+ destination+' is out of map.');
+                return;
+            }
             let dstTile = scene[destination[0]][destination[1] ];
             let free = isObjEmpty(dstTile);
-            console.log('Curr: '+currentPos );
-            console.log('Dst: ' +destination);
             if (free) {
                 let tile = scene[currentPos[0]][currentPos[1]];  // scene is also y, x, sice it is an array of rows
                 scene[destination[0]][destination[1]] = tile;
