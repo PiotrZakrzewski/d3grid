@@ -1,6 +1,6 @@
 # Small toy example/demo of D3 used in a browser game. 
 Based on angular Seed, below shortened readme from the original angular seed with instructions on how to start the app. 
-The app demonstrates a randomly generated tiled map. You can select one of the red tiles and move it around. You will probably notice that there is quite some lag (and that its length is irregular) between each scene redraw (scene is redrown on move and after the view is centered on the selected tile). 
+The app demonstrates a randomly generated tiled map. You can select one of the red tiles and move it around. You will probably notice that there is quite some lag (and that its length is irregular) between each scene redraw (scene redraw happens on move and after the view is centered on the selected tile). 
 
 #Controls
 WSAD to move
